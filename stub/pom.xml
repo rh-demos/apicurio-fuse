@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<parent>
+        <artifactId>apicurio-fuse-example</artifactId>
+        <groupId>com.example</groupId>
+        <version>1.0</version>
+    </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -9,7 +14,7 @@
 
   <packaging>jar</packaging>
 
-  <name>Fabric8 :: Quickstarts :: Spring-Boot :: Camel REST / SQL</name>
+  <name>OpenAPI stub and mock object creation</name>
   <description>Spring Boot example running a Camel REST route connecting to a SQL database</description>
 
   <properties>
@@ -239,9 +244,16 @@
         <groupId>org.apache.camel</groupId>
         <artifactId>camel-restdsl-swagger-plugin</artifactId>
         <version>2.23.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate-xml-with-dto</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
        <!--   <specificationUri>src/spec/publisher-swagger.json</specificationUri> -->
-          <specificationUri>src/spec/customer-svc-definition.json</specificationUri>
+          <specificationUri>${project.basedir}/src/spec/customer-svc-definition.json</specificationUri>
           <fileName>camel-rest.xml</fileName>
 
           <!-- comment this to stop the rest dsl from being generated. or published.-->
