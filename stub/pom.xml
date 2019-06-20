@@ -253,14 +253,14 @@
         </executions>
         <configuration>
        <!--   <specificationUri>src/spec/publisher-swagger.json</specificationUri> -->
-          <specificationUri>${project.basedir}/src/spec/customer-svc-definition.json</specificationUri>
+          <specificationUri>${project.basedir}/src/spec/beer-catalog-API.json</specificationUri>
           <fileName>camel-rest.xml</fileName>
 
           <!-- comment this to stop the rest dsl from being generated. or published.-->
           <outputDirectory>${project.build.directory}/generated-sources/src/main/resources/camel-rest</outputDirectory>
           <modelOutput>${project.build.directory}/generated-sources</modelOutput>
-          <packageName>com.example.customer</packageName>
-          <modelPackage>com.example.customer.dto</modelPackage>
+          <packageName>com.example.beer</packageName>
+          <modelPackage>com.example.beer.dto</modelPackage>
         </configuration>
       </plugin>
        <plugin>

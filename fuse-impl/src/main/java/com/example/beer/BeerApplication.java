@@ -1,4 +1,4 @@
-package com.example.customer;
+package com.example.beer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 
 @SpringBootApplication
-public class CustomerApplication {
+public class BeerApplication {
     public static void main(String[] args){
-        SpringApplication.run(CustomerApplication.class, args);
+        SpringApplication.run(BeerApplication.class, args);
     }
 }
