@@ -7,18 +7,15 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-
+import com.example.beer.service.BeerService;
 import com.example.beer.dto.Beer;
-
-/*
-    This is a stub for the Driver endpoint that just returns some itelimatics data.
-    Only to be used for mock testing.
-
- */
-
+import org.apache.camel.BeanInject;
 
 @Component
 public class GetBeerByNameRoute extends RouteBuilder {
+	@BeanInject
+	private BeerService mBeerService;
+	
     @Override
     public void configure() throws Exception {
         from("direct:GetBeer")
@@ -30,14 +27,9 @@ public class GetBeerByNameRoute extends RouteBuilder {
                         if(name == null) {
                             throw new IllegalArgumentException("must provide a name");
                         }
-                        Beer b = new Beer();
-                        b.setCountry("Denmark");
-                        b.setName(name);
-                        b.setRating(new BigDecimal(5));
-                        b.setStatus("N/A");
-                        b.setType("Pilsner");
+                        Beer b = mBeerService.getBeerByName(name);
 
-                        exchange.getIn().setBody(b);
+                        exchange.getIn().setBody(b == null? new Beer(): b);
                     }
                 })
                 .marshal().json(JsonLibrary.Jackson);

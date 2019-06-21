@@ -11,13 +11,14 @@ This article will not focus on all the advantages of API first design - a lot ha
 
 Imagine you’re a developer at a company and are handed an API, which has been designed by one of your peers. All you need to do is to provide an implementation as fast as possible, in the cheapest way and in the best possible quality - You know the drill right:-)
 
-The API you have to implement is used for exposing a beer API https://github.com/microcks/api-lifecycle/blob/master/beer-catalog-demo/api-contracts/beer-catalog-api-swagger.json. Its pretty simple and consists of three operations:
+//maybe provide some pointers about the file content and how to model it.
+The API you have to implement is used for exposing a beer API https://github.com/microcks/api-lifecycle/blob/master/beer-catalog-demo/api-contracts/beer-catalog-api-swagger.json . Its pretty simple and consists of three operations:
 
 * GetBeer - Get a beer by name
 * FindBeersByStatus - Find a beer by its status
 * ListBeers - Get all beers in the database
 
-As you can see from the json file, each operation is identified by an operation id. That will show to be handy, when doing the actual implementation.
+As you can see in the json file, each operation is identified by an _operationId_. That will show to be handy, when doing the actual implementation.
 
 I don’t want to code all the DTOs and boiler plate code, since that’s very time consuming and trivial as well. Therefore I use the https://github.com/apache/camel/blob/master/tooling/maven/camel-restdsl-swagger-plugin/src/main/docs/camel-restdsl-swagger-plugin.adoc[Camel REST DSL Swagger Maven Plugin] for generating all of that. First I configure the swagger plugin in the pom.xml file for the stub project. I add the following:
 
@@ -62,13 +63,13 @@ I don’t want to code all the DTOs and boiler plate code, since that’s very t
 ----
 
 The plugin is pretty easy to configure:
-* The goal is set to generate-xml-with-dto, which means that a rest DSL xml file is generated from the definition together with my Data Transfer Objects.
-* specificationUri points to the location of my API definition.
-* The name of the rest DSL xml file.
-* Where to output the generated rest DSL xml file. If I place it in this location, Camel will automatically pick it up if included in a project.
-* Package name for the DTOs
+. The goal is set to generate-xml-with-dto, which means that a rest DSL xml file is generated from the definition together with my Data Transfer Objects. There are other options including one to generate a Java client for the interface.
+. specificationUri points to the location of my API definition.
+. The name of the rest DSL xml file to generate.
+. Where to output the generated rest DSL xml file. If I place it in this location, Camel will automatically pick it up if included in a project.
+. Package name for the DTOs
 
-Finally I need to change the location of the source and resource files for the compiler and then I’m ready to generate my stub for the rest service. Finally I copy my API specification to the location I chose previously.
+In _pom.xml_ I also need to change the location of the source and resource files for the compiler. Finally I need to copy my API specification to the location I chose previously. This isn't described in this blog as it's known stuff, but if in doubt refer to the https://github.com/rh-demos/apicurio-fuse[source code]. Then I’m ready to generate my stub for the rest service.
 
 So far I’ve got the following file structure:
 
@@ -81,9 +82,7 @@ So far I’ve got the following file structure:
 
 ----
 
-Now I simply run mvn install and the stub is automatically generated.
-
-The DTOs are generated in the package I chose. Furthermore an xml file is created for the rest endpoint.
+I run mvn install and the stub is automatically generated and put into my local repository. The DTOs are generated in the package I chose. Furthermore an xml file is created for the rest endpoint.
 
 .stub/target/generated-sources/src/main/resources/camel-rest/camel-rest.xml
 ----
@@ -118,15 +117,67 @@ The important thing to note is that each rest operation is routing to a _uri_ na
 
 For the implementation I choose Fuse running in a Spring boot container. The main reason being, that the implementation is then ready for running in OpenShift, once I'm satisfied with my work.
 
-Besides the usual pom.xml and SpringBootApplication boilerplate code, all I have to provide is my implementation.
+Besides the usual boilerplate code, only thing I have to do is to add a dependency to the project containing the stub in my pom.xml:
+----
+    <dependency>
+      <groupId>com.example</groupId>
+      <artifactId>beer</artifactId>
+      <version>1.0</version>
+    </dependency>
+----
 
+Now I'm all set and all I have to do is to provide is my implementation of the three operations. As an example of an implementation, consider the following example.
 
+.src/main/java/com/example/beer/routes/GetBeerByNameRoute.java
+----
+package com.example.beer.routes;
 
-Describe implementation
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JsonLibrary;
+import org.springframework.stereotype.Component;
 
-Ready to grab a beer
+import com.example.beer.service.BeerService;
+import com.example.beer.dto.Beer;
+import org.apache.camel.BeanInject;
 
-Would you have the two implementations in the same maven project?
-* You can also generate a client. If doing it in separate projects, you can include this client in every project. Not only the current maven project.
+@Component
+public class GetBeerByNameRoute extends RouteBuilder {
+	@BeanInject
+	private BeerService mBeerService;
+	
+    @Override
+    public void configure() throws Exception {
+        from("direct:GetBeer")
+                .process( new Processor(){
 
-Point to reference implementation.
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        String name = exchange.getIn().getHeader("name", String.class);
+                        if(name == null) {
+                            throw new IllegalArgumentException("must provide a name");
+                        }
+                        Beer b = mBeerService.getBeerByName(name);
+
+                        exchange.getIn().setBody(b == null? new Beer(): b);
+                    }
+                })
+                .marshal().json(JsonLibrary.Jackson);
+    }
+}
+----
+I inject a _BeerService_ which holds the information about the different beers. Then I define a direct endpoint, which provides the endpoint, which the rest call is routed to (remember the _operationId_ mentioned earlier?). The processor tries to lookup the beer. If no beer is found, an empty beer object is returned. Now I'm ready to try out my example:
+----
+mvn package
+java -jar fuse-impl/target/beer-svc-impl-1.0-SNAPSHOT.jar
+#in a separate terminal
+curl http://localhost:8080/rest/beer/Carlsberg
+{"name":"Carlsberg","country":"Denmark","type":"pilsner","rating":5,"status":"available"}
+----
+Job done. I'm ready to grap myself a beer!
+
+I might have to do this over and over again. In that case, I can create a maven archetype for the two projects. Alternatively I can clone a template project, containing all the boilerplate code and do the necessary changes from there. That will be a bit more work though, as I'll have to rename maven modules as well as java classes, but it's not too much of a hassle.
+
+You can use my https://github.com/rh-demos/apicurio-fuse[example code] as a starting point.
+
