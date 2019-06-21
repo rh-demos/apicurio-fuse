@@ -1,0 +1,132 @@
+= API first design with Fuse
+
+//need to sharpen the intro.
+
+API first is a commonly used practise, where you define the interfaces for your application, before providing an actual implementation. This approach will give you a lot of benefits:
+* It’ll allow you to define a tight border between the functionality you provide and its implementation, making it easy to change implementation if needed.
+* You can focus just on making your API useful for the end users.
+* It’s easy to do stubbing and testing the API, bringing down the cost for testing if your API is useful.
+
+This article will not focus on all the advantages of API first design - a lot has already been written about that. This article will focus on, how to take an API definition and bring it into code in Fuse in an efficient manner, which allows for good separation of stub and implementation. In a future article, I’ll also provide some information on how to handle changes in the API over time.
+
+Imagine you’re a developer at a company and are handed an API, which has been designed by one of your peers. All you need to do is to provide an implementation as fast as possible, in the cheapest way and in the best possible quality - You know the drill right:-)
+
+The API you have to implement is used for exposing a beer API https://github.com/microcks/api-lifecycle/blob/master/beer-catalog-demo/api-contracts/beer-catalog-api-swagger.json. Its pretty simple and consists of three operations:
+
+* GetBeer - Get a beer by name
+* FindBeersByStatus - Find a beer by its status
+* ListBeers - Get all beers in the database
+
+As you can see from the json file, each operation is identified by an operation id. That will show to be handy, when doing the actual implementation.
+
+I don’t want to code all the DTOs and boiler plate code, since that’s very time consuming and trivial as well. Therefore I use the https://github.com/apache/camel/blob/master/tooling/maven/camel-restdsl-swagger-plugin/src/main/docs/camel-restdsl-swagger-plugin.adoc[Camel REST DSL Swagger Maven Plugin] for generating all of that. First I configure the swagger plugin in the pom.xml file for the stub project. I add the following:
+
+----
+…
+<dependencies>
+  <dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-swagger-java-starter</artifactId>
+  </dependency>
+…
+</dependencies>
+…
+<plugins>
+  <plugin>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-restdsl-swagger-plugin</artifactId>
+    <version>2.23.0</version>
+    <executions>
+      <execution>
+        <goals>
+          <goal>generate-xml-with-dto</goal><!-- 1 -->
+        </goals>
+      </execution>
+    </executions>
+    <configuration>
+      <specificationUri><!-- 2 -->
+        ${project.basedir}/src/spec/beer-catalog-API.json
+      </specificationUri>
+      <fileName>camel-rest.xml</fileName><!-- 3 -->
+      <outputDirectory><!-- 4 -->
+              ${project.build.directory}/generated-sources/src/main/resources/camel-rest
+      </outputDirectory>
+      <modelOutput>
+        ${project.build.directory}/generated-sources
+      </modelOutput>
+      <modelPackage>com.example.beer.dto</modelPackage><!-- 5 -->
+    </configuration>
+  </plugin>
+</plugins>
+...
+----
+
+The plugin is pretty easy to configure:
+* The goal is set to generate-xml-with-dto, which means that a rest DSL xml file is generated from the definition together with my Data Transfer Objects.
+* specificationUri points to the location of my API definition.
+* The name of the rest DSL xml file.
+* Where to output the generated rest DSL xml file. If I place it in this location, Camel will automatically pick it up if included in a project.
+* Package name for the DTOs
+
+Finally I need to change the location of the source and resource files for the compiler and then I’m ready to generate my stub for the rest service. Finally I copy my API specification to the location I chose previously.
+
+So far I’ve got the following file structure:
+
+----
+.
+├── pom.xml
+└── src
+    └── spec
+        └── beer-catalog-API.json
+
+----
+
+Now I simply run mvn install and the stub is automatically generated.
+
+The DTOs are generated in the package I chose. Furthermore an xml file is created for the rest endpoint.
+
+.stub/target/generated-sources/src/main/resources/camel-rest/camel-rest.xml
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rests xmlns="http://camel.apache.org/schema/spring">
+    <restConfiguration component="servlet"/>
+    <rest>
+        <get id="GetBeer" uri="/beer/{name}">
+            <description>Get beer having name</description>
+            <param dataType="string" description="Name of beer to retrieve" name="name" required="true" type="path"/>
+            <to uri="direct:GetBeer"/>
+        </get>
+        <get id="FindBeersByStatus" uri="/beer/findByStatus/{status}">
+            <description>Get beers having status</description>
+            <param dataType="string" description="Status of beers to retrieve" name="status" required="true" type="path"/>
+            <param dataType="number" description="Number of page to retrieve" name="page" required="false" type="query"/>
+            <to uri="direct:FindBeersByStatus"/>
+        </get>
+        <get id="ListBeers" uri="/beer">
+            <description>List beers within catalog</description>
+            <param dataType="number" description="Number of page to retrieve" name="page" required="false" type="query"/>
+            <to uri="direct:ListBeers"/>
+        </get>
+    </rest>
+</rests>
+----
+
+The important thing to note is that each rest operation is routing to a _uri_ named _direct:operatorId_, which is the same operator as in the API definition file. This enables me to easily provide an implementation for each operation. I want to keep the code generated by the plugin separate from my implementation. There are several reasons for that:
+* Code generation consumes time and resources. Separating code generation from compiling my implementation allows me to use less time waiting and thus more time for drinking coffee with the colleagues and be creative in all sorts of ways:-)
+* I don't have to worry that I accidentally put some implementation stuff in an autogenerated class and as a consequence loose my work next time I regenerate my stub. Of course I've got everything under version control, but it's still time consuming to resolve what was done, moving code, etc.
+* Other projects can refer to the generated artifacts independently of my implementation.
+
+For the implementation I choose Fuse running in a Spring boot container. The main reason being, that the implementation is then ready for running in OpenShift, once I'm satisfied with my work.
+
+Besides the usual pom.xml and SpringBootApplication boilerplate code, all I have to provide is my implementation.
+
+
+
+Describe implementation
+
+Ready to grab a beer
+
+Would you have the two implementations in the same maven project?
+* You can also generate a client. If doing it in separate projects, you can include this client in every project. Not only the current maven project.
+
+Point to reference implementation.
