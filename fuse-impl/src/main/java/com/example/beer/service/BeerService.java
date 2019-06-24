@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class BeerService {
 
-    private List<Beer> mBeerList;
+    private LinkedList<Beer> mBeerList;
 
     public BeerService() {
         mBeerList = new LinkedList<Beer>();
@@ -35,6 +35,11 @@ public class BeerService {
             }
         }
         return null;
+    }
+    public List<Beer> getBeerByStatus(String status) {
+    	List<Beer> filteredBeerList = (List<Beer>) mBeerList.clone();
+    	filteredBeerList.removeIf(b -> status.equals(b.getStatus()));
+        return filteredBeerList;
     }
     public List<Beer> getAllBeers() {
         return mBeerList;
