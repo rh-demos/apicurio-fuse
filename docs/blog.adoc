@@ -102,7 +102,7 @@ So far we have the following file structure in the _stub_ project:
             └── beer-catalog-API.json
 ----
 
-Run _mvn install_ in the _stub_ dir and the stub is automatically generated and put into the local repository. The DTOs are generated in the package we chose previously. Furthermore an xml file is created for the rest endpoint.
+Run _mvn install_ in the _stub_ dir and the stub is automatically generated, compiled, put in a jar file, and put into the local maven repository. The DTOs are generated in the package we chose previously. Furthermore an xml file is created for the rest endpoint.
 
 .stub/target/generated-sources/src/main/resources/camel-rest/camel-rest.xml
 ----
@@ -144,7 +144,7 @@ Besides the usual boilerplate code, only thing we have to do is to add a depende
     </dependency>
 ----
 
-Now we're all set and all we have to do is to provide is our implementation of the three operations. As an example of an implementation, consider the following example.
+Now we're all set and we can provide our implementation of the three operations. As an example of an implementation, consider the following example.
 
 .src/main/java/com/example/beer/routes/GetBeerByNameRoute.java
 ----
