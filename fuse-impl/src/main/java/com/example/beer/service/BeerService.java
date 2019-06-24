@@ -15,7 +15,7 @@ public class BeerService {
         beer.setCountry("Denmark");
         beer.setName("Carlsberg");
         beer.setRating(new BigDecimal(5));
-        beer.setStatus("available");
+        beer.setStatus("unavailable");
         beer.setType("pilsner");
         mBeerList.add(beer);
         
@@ -38,7 +38,7 @@ public class BeerService {
     }
     public List<Beer> getBeerByStatus(String status) {
     	List<Beer> filteredBeerList = (List<Beer>) mBeerList.clone();
-    	filteredBeerList.removeIf(b -> status.equals(b.getStatus()));
+    	filteredBeerList.removeIf(b -> !status.equals(b.getStatus()));
         return filteredBeerList;
     }
     public List<Beer> getAllBeers() {
