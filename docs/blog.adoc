@@ -2,12 +2,8 @@
 
 //need to sharpen the intro.
 
-API first is a commonly used practise, where you define the interfaces for your application, before providing an actual implementation. This approach will give you a lot of benefits:
-* It’ll allow you to define a tight border between the functionality you provide and its implementation, making it easy to change implementation if needed.
-* You can focus just on making your API useful for the end users.
-* It’s easy to do stubbing and testing the API, bringing down the cost for testing if your API is useful.
+API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure before investing a lot of time in implementing it and you can share your ideas with other teams early to get valuable feedback. Later in the process  delays in the backend development will not affect front end developers dependent on your service so much. A lot has been written about API first design, so this article will focus on, how to take an OpenAPI definition and bring it to code in Fuse efficiently.
 
-This article will not focus on all the advantages of API first design - a lot has already been written about that. This article will focus on, how to take an API definition and bring it into code in Fuse in an efficient manner, which allows for good separation of stub and implementation. In a future article, I’ll also provide some information on how to handle changes in the API over time.
 
 Imagine you’re a developer at a company and are handed an API, which has been designed by one of your peers. All you need to do is to provide an implementation as fast as possible, in the cheapest way and in the best possible quality - You know the drill right:-)
 
