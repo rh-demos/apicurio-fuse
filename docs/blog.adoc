@@ -1,9 +1,6 @@
 = API first design with Fuse
 
-//need to sharpen the intro.
-
-API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure before investing a lot of time in implementing it and you can share your ideas with other teams early to get valuable feedback. Later in the process  delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about API first design, so this article will focus on, how to take an https://swagger.io/specification/[OpenAPI] definition and bring it to code in Fuse efficiently.
-
+API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure, before investing a lot of time in implementing it, and you can share your ideas with other teams early to get valuable feedback. Later in the process delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about API first design, so this article will focus on, how to take an https://swagger.io/specification/[OpenAPI] definition and bring it to code in Fuse efficiently.
 
 Imagine you’re a developer at a company and are handed an API, which has been designed by one of your peers. All you need to do is to provide an implementation as fast as possible, in the cheapest way and in the best possible quality - You know the drill right:-)
 
