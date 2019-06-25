@@ -1,6 +1,6 @@
 = How to do API first design with OpenAPI and Fuse
 
-API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure, before investing a lot of time in implementing it, and you can share your ideas with other teams early to get valuable feedback. Later in the process delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about the benefits of API first design, so this article will instead focus on, how to  efficiently take an https://swagger.io/specification/[OpenAPI] definition and bring it into code with Fuse.
+API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure, before investing a lot of time in implementing it, and you can share your ideas with other teams early to get valuable feedback. Later in the process delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about the benefits of API first design, so this article will instead focus on, how to  efficiently take an https://www.openapis.org/[OpenAPI] definition and bring it into code with Fuse.
 
 Imagine an API has been designed for you. The API is used for exposing a beer API https://github.com/microcks/api-lifecycle/blob/master/beer-catalog-demo/api-contracts/beer-catalog-api-swagger.json . Its pretty simple and consists of three operations:
 
@@ -196,6 +196,8 @@ curl http://localhost:8080/rest/beer/Carlsberg
 ----
 
 We might have to do this over and over again. In that case, we can create a maven archetype for the two projects. Alternatively we can clone a template project, containing all the boilerplate code and do the necessary changes from there. That will be a bit more work though, as we'll have to rename maven modules as well as java classes, but it's not too much of a hassle.
+
+== Conclusion
 
 You can use the https://github.com/rh-demos/apicurio-fuse[example code] as a starting point.
 
