@@ -13,25 +13,28 @@ import org.apache.camel.BeanInject;
 
 @Component
 public class GetBeerByNameRoute extends RouteBuilder {
-	@BeanInject
-	private BeerService mBeerService;
-	
-    @Override
-    public void configure() throws Exception {
-        from("direct:GetBeer")
-                .process( new Processor(){
+  @BeanInject
+  private BeerService mBeerService;
 
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        String name = exchange.getIn().getHeader("name", String.class);
-                        if(name == null) {
-                            throw new IllegalArgumentException("must provide a name");
-                        }
-                        Beer b = mBeerService.getBeerByName(name);
+  @Override
+  public void configure() throws Exception {
+    from("direct:GetBeer").process(new Processor() {
 
-                        exchange.getIn().setBody(b == null? new Beer(): b);
-                    }
-                })
-                .marshal().json(JsonLibrary.Jackson);
-    }
+      @Override
+      public void process(Exchange exchange) throws Exception {
+        String name = exchange.getIn().getHeader("name", String.class);
+        if (name == null) {
+          throw new IllegalArgumentException("must provide a name");
+        }
+        Beer b = mBeerService.getBeerByName(name);
+
+        if(b==null) {
+          exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, 204);
+          exchange.getIn().setBody(new Beer());
+        } else {
+          exchange.getIn().setBody(b);
+        }
+      }
+    }).marshal().json(JsonLibrary.Jackson);
+  }
 }

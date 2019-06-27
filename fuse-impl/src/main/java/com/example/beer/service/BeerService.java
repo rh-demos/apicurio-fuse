@@ -15,7 +15,7 @@ public class BeerService {
         beer.setCountry("Denmark");
         beer.setName("Carlsberg");
         beer.setRating(new BigDecimal(5));
-        beer.setStatus("unavailable");
+        beer.setStatus("available");
         beer.setType("pilsner");
         mBeerList.add(beer);
         
@@ -23,7 +23,7 @@ public class BeerService {
         beer.setCountry("Germany");
         beer.setName("Sneider Weisse 7");
         beer.setRating(new BigDecimal(6));
-        beer.setStatus("available");
+        beer.setStatus("out_of_stock");
         beer.setType("Weissbeer");
         mBeerList.add(beer);
     }
