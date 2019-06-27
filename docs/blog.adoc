@@ -1,6 +1,6 @@
 = How to do API first design with OpenAPI and Fuse
 
-API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure, before investing a lot of time in implementing it, and you can share your ideas with other teams early to get valuable feedback. Later in the process delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about the benefits of API first design, so this article will instead focus on, how to  efficiently take an https://www.openapis.org/[OpenAPI] definition and bring it into code with Fuse.
+API first is a commonly used practice, where you define the interfaces for your application, before providing an actual implementation. This approach gives you a lot of benefits. You can try out if your API has the right structure, before investing a lot of time in implementing it, and you can share your ideas with other teams early to get valuable feedback. Later in the process delays in the backend development will not affect front end developers dependent on your service so much, because it's easy to create mock implementations of a service from the API definition. A lot has been written about the benefits of API first design, so this article will instead focus on, how to  efficiently take an https://www.openapis.org/[OpenAPI] definition and bring it into code with https://developers.redhat.com/products/fuse[Red Hat Fuse].
 
 Imagine an API has been designed for you. The API is used for exposing a beer API https://github.com/microcks/api-lifecycle/blob/master/beer-catalog-demo/api-contracts/beer-catalog-api-swagger.json . Its pretty simple and consists of three operations:
 
@@ -130,7 +130,7 @@ Run _mvn install_ in the _stub_ dir and the stub is automatically generated, com
 </rests>
 ----
 
-The important thing to note is that each rest operation is routing to a _uri_ named _direct:operatorId_, which is the same operator as in the API definition file. This enables us to easily provide an implementation for each operation.
+The important thing to note is that each rest operation is routing to a _uri_ named _direct:operatorId_, where _operatorId_ is the same operator as in the API definition file. This enables us to easily provide an implementation for each operation.
 
 == Providing an implementation of the API
 For the example implementation we choose Fuse running in a Spring boot container to make it easily deployable in OpenShift.
@@ -156,33 +156,32 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import com.example.beer.service.BeerService;
 import com.example.beer.dto.Beer;
 import org.apache.camel.BeanInject;
 
 @Component
 public class GetBeerByNameRoute extends RouteBuilder {
-	@BeanInject
-	private BeerService mBeerService;
-	
-    @Override
-    public void configure() throws Exception {
-        from("direct:GetBeer")
-                .process( new Processor(){
+  @BeanInject
+  private BeerService mBeerService;
 
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        String name = exchange.getIn().getHeader("name", String.class);
-                        if(name == null) {
-                            throw new IllegalArgumentException("must provide a name");
-                        }
-                        Beer b = mBeerService.getBeerByName(name);
+  @Override
+  public void configure() throws Exception {
+    from("direct:GetBeer").process(new Processor() {
 
-                        exchange.getIn().setBody(b == null? new Beer(): b);
-                    }
-                })
-                .marshal().json(JsonLibrary.Jackson);
-    }
+      @Override
+      public void process(Exchange exchange) throws Exception {
+        String name = exchange.getIn().getHeader("name", String.class);
+        if (name == null) {
+          throw new IllegalArgumentException("must provide a name");
+        }
+        Beer b = mBeerService.getBeerByName(name);
+
+        exchange.getIn().setBody(b == null ? new Beer() : b);
+      }
+    }).marshal().json(JsonLibrary.Jackson);
+  }
 }
 ----
 We inject a _BeerService_ which holds the information about the different beers. Then we define a direct endpoint, which provides the endpoint, which the rest call is routed to (remember the _operationId_ mentioned earlier?). The processor tries to lookup the beer. If no beer is found, an empty beer object is returned. To try out the example run:
@@ -199,5 +198,9 @@ We might have to do this over and over again. In that case, we can create a mave
 
 == Conclusion
 
-You can use the https://github.com/rh-demos/apicurio-fuse[example code] as a starting point.
+In conclusion API first is a practice, where you design and test your API before doing the actual implementation. You can get early feedback on your API from the people using it, without having to provide an actual implementation. In this way you can save time and money.
+
+Coming from a design to an actual implementation is easy with https://developers.redhat.com/products/fuse[Red Hat Fuse]. Just use the https://github.com/apache/camel/blob/master/tooling/maven/camel-restdsl-swagger-plugin/src/main/docs/camel-restdsl-swagger-plugin.adoc[Camel REST DSL Swagger Maven Plugin] to generate a stub and you are set for providing the actual implementation. This article describes how to do so and at the same time promote a good modular design by keeping generated code separate from the actual implementation.
+
+If you want to get started, you can use the https://github.com/rh-demos/apicurio-fuse[example code] as a starting point.
 
